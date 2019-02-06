@@ -1,4 +1,4 @@
-# SelectInput
+# SelectInput ![](https://img.shields.io/github/package-json/v/pecuchet/select-input.svg?style=flat)
 
 Minimal vanilla Javascript select box/dropdown with an input field. (ie11+)  
 <br>
