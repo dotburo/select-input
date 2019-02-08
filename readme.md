@@ -28,19 +28,17 @@ selectInput.on('selected', e => console.log(e.detail))
 
 ## Available options (and their defaults)
 ```
-{
-    items: [],                           # Array of strings/numbers or of {value: String|Number} objects
-    current: null,                       # Item to select on instantiation
-    parent: null,                        # Parent element, to 
-    maxHeight: 0,                        # Maximum height of the dropdown, `0` means no constraint
-    proposal: 'Add {X} to the list?',    # Message to add an item to the list, {X} will be replaced
-    sort: true,                          # Whether to sort the list
-    order: 'desc',                       # Sort order
-    removalIcon: '&times;'               # HTML for deletion button in each item li-element
-    placeHolder: 'Type to search',       # Input field place holder
-    onDelete: null,                      # Callable, fired before deleting an item; return `false` to prevent deletion
-    onCreate: null                       # Callable, fired before creatng an item; return `false` to prevent creation
-}
+items: []                          # Array of strings/numbers or of {value: String|Number} objects
+current: null                      # Item to select on instantiation
+parent: null                       # Parent element, to 
+maxHeight: 0                       # Maximum height of the dropdown, `0` means no constraint
+proposal: 'Add {X} to the list?'   # Message to add an item to the list, {X} will be replaced
+sort: true                         # Whether to sort the list
+order: 'desc'                      # Sort order
+removalIcon: '&times;'             # HTML for deletion button in each item li-element
+placeHolder: 'Type to search'      # Input field place holder
+onDelete: null                     # Callable, fired before deleting an item; return `false` to prevent deletion
+onCreate: null                     # Callable, fired before creatng an item; return `false` to prevent creation
 ```
 
 ## Events
