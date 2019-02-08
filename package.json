@@ -5,9 +5,10 @@
   "main": "dist/select-input-min.js",
   "module": "src/select-input.js",
   "scripts": {
-    "build": "rollup -c && npm run build:css",
+    "build": "rollup -c && npm run build:css && npm run copy:docs",
     "build:css": "cleancss -o dist/base.min.css src/base.css",
     "build:babel": "rollup --config rollup.config-babel.js",
+    "copy:docs": "cp ./dist/select-input-umd.js ./docs && cp ./dist/base.min.css ./docs",
     "watch": "rollup -c -w"
   },
   "repository": {

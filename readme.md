@@ -1,4 +1,4 @@
-# SelectInput ![](https://img.shields.io/github/package-json/v/pecuchet/select-input.svg?style=flat)
+# SelectInput ![](https://img.shields.io/github/tag/pecuchet/select-input.svg?label=version&style=flat)
 
 Single-purpose select box/dropdown with an input field&mdash;without dependencies (ie11+).  
 <br>

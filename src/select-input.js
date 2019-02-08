@@ -1,26 +1,11 @@
-const
-    d = document,
-    defaults = {
-        items: [],
-        current: null,
-        parent: null,
-        maxHeight: 0,
-        proposal: 'Add {X} to the list?',
-        sort: true,
-        order: 'desc',
-        removalIcon: '&times;',
-        placeHolder: 'Type to search',
-        onDelete: null,
-        onCreate: null
-    };
+import DomHelper from "./dom-component.js";
+import defaults from "./defaults.js";
 
-export default class SelectInput {
+const d = document;
+
+export default class SelectInput extends DomHelper {
     constructor(element, options = {}) {
-        this.options = Object.assign({}, defaults, options);
-
-        this.dom = {
-            el: this._setElement(element)
-        };
+        super(element, options, defaults);
 
         this.options.items = this._convertItems(options.items);
         this.current = options.current ? this._convertItem(options.current) : {};
@@ -32,7 +17,6 @@ export default class SelectInput {
 
         this._renderInit();
 
-        this._events = [];
         this._bindEvents();
     }
 
@@ -58,26 +42,6 @@ export default class SelectInput {
     }
 
     /**
-     * Bind a (delegated) event
-     * @param {String} event
-     * @param {Function} fn
-     * @param {HTMLElement|Document} el
-     * @return SelectInput
-     */
-    on(event, fn, el = null) {
-
-        (el || this.dom.el).addEventListener(event, fn = fn.bind(this), true);
-
-        this._events.push({
-            name: event,
-            fn: fn,
-            el: el
-        });
-
-        return this;
-    }
-
-    /**
      * Store the deletion callback
      * @param {Function} fn
      * @return SelectInput
@@ -100,20 +64,12 @@ export default class SelectInput {
     /**
      * Show/hide the dropdown
      * @param {Boolean} show
-     * @return SelectInput
+     * @return DomHelper
      */
     toggle(show = false) {
         this.dom.el.firstElementChild.classList[show ? 'remove' : 'add']('si-hide');
         if (!show) this.dom.input.blur();
         return this;
-    }
-
-    /**
-     * Return the main wrapping element
-     * @return {Element}
-     */
-    getElement() {
-        return this.dom.el;
     }
 
     /**
@@ -156,18 +112,6 @@ export default class SelectInput {
     }
 
     /**
-     * Unbind all events and nullify references
-     * @return void
-     */
-    remove() {
-        this._events = this._events.filter(event => {
-            return (event.el || this.dom.el).removeEventListener(event.name, event.fn, true);
-        });
-        this.dom.el.parentNode.removeChild(this.dom.el);
-        this.dom = this.options = null;
-    }
-
-    /**
      * Set the current value of the field
      * @param {EventTarget|null} el
      * @param {Object} item
@@ -179,41 +123,6 @@ export default class SelectInput {
         this.dom.input.value = item.value.toString();
         this._setSelected(item, el);
         return this;
-    }
-
-    /**
-     * Communicate changes
-     * @param {String} name
-     * @param {Object} item
-     * @private
-     */
-    _trigger(name, item = null) {
-        let event;
-
-        if (typeof CustomEvent === 'function') {
-            event = new CustomEvent(name, {
-                detail: (item || this.current)
-            });
-        } else {
-            event = d.createEvent('Event');
-            event.initEvent(name, true, true);
-        }
-
-        this.dom.el.dispatchEvent(event);
-    }
-
-    /**
-     * Query the element in the DOM if its a string
-     * @param {Element|String} el
-     * @return {Element|null}
-     * @private
-     */
-    _setElement(el) {
-        if (!el && !el.nodeType && typeof el !== 'string') {
-            throw new Error('Wrong element type provided!');
-        }
-        if (el.nodeType) return el;
-        return (this.options.parent || d).querySelector(el);
     }
 
     /**
@@ -279,7 +188,7 @@ export default class SelectInput {
 
     /**
      * Create the input element
-     * @return {HTMLInputElement}
+     * @return {HTMLDivElement}
      * @private
      */
     _renderInput() {
@@ -400,11 +309,8 @@ export default class SelectInput {
             classList = el.classList;
 
         if (classList.contains('si-proposal')) {
-            let obj = this._convertItem(el.dataset.term);
-            if (this._fireCallback('onCreate', obj)) {
-                this._setCurrent(this._insertItem(obj), el)
-                    .toggle()
-                    ._trigger('created');
+            if (this._tryCreateItem(el.dataset.term)) {
+                this.toggle()._trigger('created', this.current);
             }
             return;
         }
@@ -412,7 +318,7 @@ export default class SelectInput {
         if (classList.contains('si-item')) {
             this._setCurrent(this.findItem(el), el)
                 .toggle()
-                ._trigger('selected');
+                ._trigger('selected', this.current);
             return;
         }
 
@@ -453,17 +359,28 @@ export default class SelectInput {
         }
 
         if (!item && value) {
-            item = this._convertItem(value);
-            if (!this.findItem(value) && this._fireCallback('onCreate', item)) {
-                event = 'created';
-                this._setCurrent(this._insertItem(item));
-            }
+            event = this._tryCreateItem(value) ? 'created' : null;
         } else if (item) {
             event = 'selected';
             this._setCurrent(item);
         }
 
-        if (event) this.toggle()._trigger(event);
+        if (event) this.toggle()._trigger(event, this.current);
+    }
+
+    /**
+     * If the value doesn't exist and the callback returns true, create and set as current
+     * @param value
+     * @return {boolean}
+     * @private
+     */
+    _tryCreateItem(value) {
+        let item = this._convertItem(value.trim());
+        if (!this.findItem(value) && this._fireCallback('onCreate', item)) {
+            this._setCurrent(this._insertItem(item));
+            return true;
+        }
+        return false;
     }
 
     /**
