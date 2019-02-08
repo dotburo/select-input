@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SelectInput</title>
+    <link href="../dist/base.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body, html {
+            padding: 0;
+            height: 100%;
+            font: 17px/1.2 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #26242f;
+            color: #fff;
+        }
+        .demo {
+            width: 100%; height: 70%;
+            display: table;
+        }
+        .demo-inner {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        .select-input {
+            width: 350px;
+            margin: 0 auto;
+        }
+        h1 {
+            width: 350px;
+            margin: 0 auto 1em auto;
+            border-bottom: 2px solid;
+            padding-bottom: .3em;
+        }
+        .si-wrap input {
+            padding: .5em .7em;
+            font: inherit;
+            background: transparent;
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
+        }
+        .si-hide input {
+            border-radius: 3px;
+        }
+        .si-list {
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+<div id="console"></div>
+<div class="demo">
+    <div class="demo-inner">
+        <h1>SelectInput.js</h1>
+        <div class="select-input"></div>
+    </div>
+</div>
+<script src="../dist/select-input-umd.js"></script>
+<script>
+    var selectInput = new SelectInput('.select-input', {
+        items: ['Art Blakey', 'Charlie Parker', 'Sarah Vaughan', 'Sonny Rollins', 'Miles Davis', 'Max Roach'],
+        current: 'Sarah Vaughan'
+    });
+    selectInput
+        .on('selected', function (e) {
+            console.log('SELECTED', e.detail, selectInput.getCurrent().value);
+        })
+        .on('created', function (e) {
+            console.log('CREATED', e.detail, selectInput.getCurrent().value);
+        })
+        .on('removed', function (e) {
+            console.log('REMOVED', e.detail, selectInput.getCurrent().value);
+        })
+        .onDelete(function(item) {
+            return window.confirm('Are you sure you want to erase ' + item.value + '?')
+        })
+        .onCreate(function(item) {
+            return window.confirm('Hello ' + item.value + '!')
+        });
+</script>
+</body>
+</html>

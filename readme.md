@@ -1,6 +1,6 @@
 # SelectInput ![](https://img.shields.io/github/package-json/v/pecuchet/select-input.svg?style=flat)
 
-Minimal vanilla Javascript select box/dropdown with an input field. (ie11+)  
+Single-purpose select box/dropdown with an input field&mdash;without dependencies (ie11+).  
 <br>
 [> demo](https://pecuchet.github.io/select-input/)
 
@@ -19,10 +19,11 @@ let selectInput = new SelectInput('.select-input', {
     items: ['A', 'B', 'C', 'D']
 });
 
-// Listen to the selected event 
-selectInput.on('selected', e => {
-    console.log(e.detail);
-});
+// Listen to events, add a callback and show the list 
+selectInput.on('selected', e => console.log(e.detail))
+           .on('created', e => selectInput.getCurrent())
+           .onDelete(item => window.confirm('Sure?'))
+           .toggle(true);
 ```
 
 ## Available options (and their defaults)
@@ -36,6 +37,9 @@ selectInput.on('selected', e => {
     sort: true,                             # Whether to sort the list
     order: 'desc',                          # Sort order
     removalIcon: '&times;'                  # HTML for deletion button in each item li-element
+    placeHolder: 'Type to search',          # Input field place holder
+    onDelete: null,                         # Callable, fired before deleting an item; return `false` to prevent deletion
+    onCreate: null                          # Callable, fired before creatng an item; return `false` to prevent creation
 }
 ```
 
@@ -51,24 +55,30 @@ For older browsers `instance.getCurrent()` will need to be used.
 
 ## Public methods
 
-### instance.on(event, fn, el = null)
+### instance.on(event, fn, el = null): instance
 Listen to events, pass in and event name (`String`), a subscriber (`Function`) and optionally and event target (`Element`). 
 If the latter is omitted, events are delegated to `instance.getElement()`.
 
-### instance.toggle(show = false)
+### instance.onDelete(fn): instance
+Pass a function to be called before deleting an item. If the function returns false, the item will not be removed.
+
+### instance.onCreate(fn): instance
+Pass a function to be called before creating an item. If the function returns false, the item will not be created.
+
+### instance.toggle(show = false): instance
 Show or hide the list
 
-### instance.getElement()
+### instance.getElement(): HTMLElement
 Return SelectInput's outermost element 
 
-### instance.getItems() 
+### instance.getItems(): array
 Get all the items in the list as an array of objects
 
-### instance.getCurrent()
+### instance.getCurrent(): object
 Return the currently selected item of the list
  
-### instance.findItem(value)
+### instance.findItem(value): object
 Find an item in the list by its value (`String|Number`)
 
-### instance.remove()
+### instance.remove(): void
 Unbind all events and clean up the DOM

@@ -5,7 +5,8 @@
   "main": "dist/select-input-min.js",
   "module": "src/select-input.js",
   "scripts": {
-    "build": "rollup -c && cleancss -o dist/base.min.css src/base.css",
+    "build": "rollup -c && npm run build:css",
+    "build:css": "cleancss -o dist/base.min.css src/base.css",
     "build:babel": "rollup --config rollup.config-babel.js",
     "watch": "rollup -c -w"
   },

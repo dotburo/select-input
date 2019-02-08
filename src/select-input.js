@@ -8,10 +8,13 @@ const
         proposal: 'Add {X} to the list?',
         sort: true,
         order: 'desc',
-        removalIcon: '&times;'
+        removalIcon: '&times;',
+        placeHolder: 'Type to search',
+        onDelete: null,
+        onCreate: null
     };
 
-export default class {
+export default class SelectInput {
     constructor(element, options = {}) {
         this.options = Object.assign({}, defaults, options);
 
@@ -34,12 +37,12 @@ export default class {
     }
 
     /**
-     * Bind the (delegated) dom events
+     * Bind all (delegated) DOM events
      * @private
      */
     _bindEvents() {
         let closeOnEvent = e => {
-            if ((e.key === 'Escape' || e.keyCode === 27) ||e.target.contains(this.dom.el)) {
+            if ((e.key === 'Escape' || e.keyCode === 27) || !this.dom.el.contains(e.target)) {
                 this.toggle(false)
             }
         };
@@ -49,34 +52,60 @@ export default class {
         this.on('keyup', this._handleKey);
         this.on('focusin', () => (this._renderListItems().toggle(true)), this.dom.input);
 
-        // close the list on `Escape` or on a click outside the component
+        // Close the list on `Escape` or on a click outside the main element
         this.on('keyup', closeOnEvent, d);
         this.on('click', closeOnEvent, d);
     }
 
     /**
-     * Bind a delegated event
+     * Bind a (delegated) event
      * @param {String} event
      * @param {Function} fn
      * @param {HTMLElement|Document} el
+     * @return SelectInput
      */
     on(event, fn, el = null) {
-        fn = fn.bind(this);
-        (el || this.dom.el).addEventListener(event, fn, false);
+
+        (el || this.dom.el).addEventListener(event, fn = fn.bind(this), true);
+
         this._events.push({
             name: event,
             fn: fn,
             el: el
-        })
+        });
+
+        return this;
+    }
+
+    /**
+     * Store the deletion callback
+     * @param {Function} fn
+     * @return SelectInput
+     */
+    onDelete(fn) {
+        this.options.onDelete = fn;
+        return this;
+    }
+
+    /**
+     * Store the creation callback
+     * @param {Function} fn
+     * @return SelectInput
+     */
+    onCreate(fn) {
+        this.options.onCreate = fn;
+        return this;
     }
 
     /**
      * Show/hide the dropdown
      * @param {Boolean} show
+     * @return SelectInput
      */
     toggle(show = false) {
         this.dom.el.firstElementChild.classList[show ? 'remove' : 'add']('si-hide');
         if (!show) this.dom.input.blur();
+        return this;
     }
 
     /**
@@ -97,7 +126,7 @@ export default class {
 
     /**
      * Return the current field value object
-     * @return {{}|null}
+     * @return {{value: String|Number}|null}
      */
     getCurrent() {
         let current = Object.assign({}, this.current);
@@ -106,8 +135,19 @@ export default class {
     }
 
     /**
+     * Clear the current value
+     * @return void
+     * @private
+     */
+    clearCurrent() {
+        this.current = {};
+        this.dom.input.value = '';
+        this._clearSelected();
+    }
+
+    /**
      * Find an item in the list
-     * @param {HTMLElement|String|Number} value
+     * @param {EventTarget|HTMLElement|String|Number} value
      * @return {{}}
      */
     findItem(value) {
@@ -116,20 +156,22 @@ export default class {
     }
 
     /**
-     * Unbind all events and clear cached properties
+     * Unbind all events and nullify references
      * @return void
      */
     remove() {
-        this._events = this._events.filter(event => (event.el || this.dom.el).removeEventListener(event.name, event.fn, false));
+        this._events = this._events.filter(event => {
+            return (event.el || this.dom.el).removeEventListener(event.name, event.fn, true);
+        });
         this.dom.el.parentNode.removeChild(this.dom.el);
-        this.dom = null;
+        this.dom = this.options = null;
     }
 
     /**
      * Set the current value of the field
-     * @param {HTMLElement|null} el
+     * @param {EventTarget|null} el
      * @param {Object} item
-     * @return this
+     * @return SelectInput
      * @private
      */
     _setCurrent(item, el = null) {
@@ -137,16 +179,6 @@ export default class {
         this.dom.input.value = item.value.toString();
         this._setSelected(item, el);
         return this;
-    }
-
-    /**
-     * Set the current value of the field
-     * @private
-     */
-    _clearCurrent() {
-        this.current = {};
-        this.dom.input.value = '';
-        this._clearSelected();
     }
 
     /**
@@ -171,7 +203,7 @@ export default class {
     }
 
     /**
-     * Query the element in the dom if its a string
+     * Query the element in the DOM if its a string
      * @param {Element|String} el
      * @return {Element|null}
      * @private
@@ -187,7 +219,7 @@ export default class {
     /**
      * Updated selected item in the html list
      * @param {Object} item
-     * @param {HTMLElement|null} el
+     * @param {EventTarget|HTMLElement|null} el
      * @private
      */
     _setSelected(item, el = null) {
@@ -197,7 +229,7 @@ export default class {
     }
 
     /**
-     * Remove classname
+     * Remove the classname of current `<li>`
      * @private
      */
     _clearSelected() {
@@ -206,7 +238,7 @@ export default class {
     }
 
     /**
-     * Make an array of object if needed
+     * Make an array of objects
      * @param {Array} items
      * @return {Object[]}
      * @private
@@ -216,9 +248,9 @@ export default class {
     }
 
     /**
-     * Normalize an item to object
-     * @param {{value: String|Number, _lc: string|String} item
-     * @return {{value: String|Number, _lc: string}}
+     * Normalize an item as an usable object
+     * @param {String|Number|{value: String|Number, _lc: String}} item
+     * @return {{value: String|Number, _lc: String}}
      * @private
      */
     _convertItem(item) {
@@ -237,7 +269,7 @@ export default class {
 
         wrap.className = 'si-wrap si-hide';
 
-        this.dom.input = wrap.appendChild(this._renderInput());
+        this.dom.input = wrap.appendChild(this._renderInput()).firstChild;
         this.dom.list = wrap.appendChild(this._renderList()).firstChild;
 
         if (this.current.value) this.dom.input.value = this.current.value;
@@ -251,11 +283,15 @@ export default class {
      * @private
      */
     _renderInput() {
-        let el = d.createElement('input');
+        let wrap = d.createElement('div'),
+            el = d.createElement('input');
+        wrap.className = 'si-input';
         el.type = 'text';
         el.autocomplete = 'false';
         el.spellcheck = false;
-        return el;
+        el.placeholder = this.options.placeHolder;
+        wrap.appendChild(el);
+        return wrap;
     }
 
     /**
@@ -298,7 +334,7 @@ export default class {
     /**
      * Insert the set of li's in the DOM
      * @param html
-     * @return this
+     * @return SelectInput
      * @private
      */
     _renderListItems(html = '') {
@@ -360,54 +396,83 @@ export default class {
      * @private
      */
     _handleClick(e) {
-        let el = e.target;
+        let el = e.target,
+            classList = el.classList;
 
-        if (el.classList.contains('si-proposal')) {
-            this._setCurrent(this._createItem(el), el).toggle();
-            this._trigger('created');
+        if (classList.contains('si-proposal')) {
+            let obj = this._convertItem(el.dataset.term);
+            if (this._fireCallback('onCreate', obj)) {
+                this._setCurrent(this._insertItem(obj), el)
+                    .toggle()
+                    ._trigger('created');
+            }
             return;
         }
 
-        if (el.classList.contains('si-item')) {
-            this._setCurrent(this.findItem(el), el).toggle();
-            this._trigger('selected');
+        if (classList.contains('si-item')) {
+            this._setCurrent(this.findItem(el), el)
+                .toggle()
+                ._trigger('selected');
             return;
         }
 
-        if (el.classList.contains('si-removal')) {
-            this._trigger('removed', this._sliceItem(el.parentNode));
+        if (classList.contains('si-removal')) {
+            el = el.parentNode;
+            if (this._fireCallback('onDelete', this.findItem(el))) {
+                this._trigger('removed', this._sliceItem(el));
+            }
         }
     }
 
     /**
-     * Handle `Enter`
+     * The `onCreate` and `onDelete` callbacks allow to prevent their respective actions
+     * @param {String} name
+     * @param {Object} item
+     * @return {Boolean}
+     * @private
+     */
+    _fireCallback(name, item) {
+        if (typeof this.options[name] === 'function') {
+            return this.options[name](item);
+        }
+        return true;
+    }
+
+    /**
+     * Handle `Enter` when there is a value in the field
      * @param {KeyboardEvent} e
      * @private
      */
     _handleKey(e) {
         let value = e.target.value,
-            event = 'selected';
-
-        if (value && (e.keyCode === 13 || e.which === 13 || e.key === 'Enter')) {
-            if (this.__found) {
-                this._setCurrent(this.__found);
-            } else {
-                this._setCurrent(this._createItem(value));
-                event = 'created';
-            }
-            this.toggle();
-            this._trigger(event);
+            item = this.__found,
+            event;
+        
+        if (!!value && (e.keyCode !== 13 && e.key !== 'Enter')) {
+            return;
         }
+
+        if (!item && value) {
+            item = this._convertItem(value);
+            if (!this.findItem(value) && this._fireCallback('onCreate', item)) {
+                event = 'created';
+                this._setCurrent(this._insertItem(item));
+            }
+        } else if (item) {
+            event = 'selected';
+            this._setCurrent(item);
+        }
+
+        if (event) this.toggle()._trigger(event);
     }
 
     /**
      * Insert a new item in the list
-     * @param {String|HTMLElement|Number} el
-     * @return {{value: String|Number, _lc: string}}
+     * @param {{value: String|Number, _lc: String}} item
+     * @return {{value: String|Number, _lc: String}}
      * @private
      */
-    _createItem(el) {
-        let item = this._convertItem(el.nodeName ? el.dataset.term : el);
+    _insertItem(item) {
         this.options.items.push(item);
         if (this.options.sort) this._sortItems();
         return item;
@@ -420,8 +485,8 @@ export default class {
     _sortItems() {
         let order = this.options.order === 'desc' ? 1 : -1;
         this.options.items.sort((a, b) => {
-            if (a.value < b.value) return -order;
-            if (a.value > b.value) return order;
+            if (a._lc < b._lc) return -order;
+            if (a._lc > b._lc) return order;
             return 0;
         });
     }
@@ -429,7 +494,7 @@ export default class {
     /**
      * Remove an item from the list
      * @param {HTMLElement|Node} el
-     * @return {{value: String|Number, _lc: string}}
+     * @return {{value: String|Number, _lc: String}}
      * @private
      */
     _sliceItem(el) {
@@ -439,7 +504,7 @@ export default class {
             item;
         this.dom.list.removeChild(el);
         item = items.splice(items.findIndex(item => item._lc === needle), 1).shift();
-        if (current && item._lc === current._lc) this._clearCurrent();
+        if (current && item._lc === current._lc) this.clearCurrent();
         return item;
     }
 }
