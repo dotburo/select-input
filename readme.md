@@ -1,4 +1,4 @@
-# SelectInput ![](https://img.shields.io/github/tag/pecuchet/select-input.svg?label=version&style=flat)
+# SelectInput ![](https://img.shields.io/github/tag/pecuchet/select-input.svg?label=version&style=flat) [![Maintainability](https://api.codeclimate.com/v1/badges/d97692a882ba7d6d2b78/maintainability)](https://codeclimate.com/github/pecuchet/select-input/maintainability)
 
 Single-purpose select box/dropdown with an input field&mdash;without dependencies (ie11+).  
 <br>
