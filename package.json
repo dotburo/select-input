@@ -1,6 +1,6 @@
 {
   "name": "@dotburo/select-input",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Lightweight & dynamic select dropdown with an input field, without dependencies",
   "main": "dist/select-input-min.js",
   "module": "src/select-input.js",

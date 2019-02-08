@@ -2,9 +2,9 @@
 
 Single-purpose select box/dropdown with an input field&mdash;without dependencies (ie11+).  
 <br>
-<a href="https://pecuchet.github.io/select-input/" target="_blank">&gt;_demo</a>
+<a href="https://pecuchet.github.io/select-input/" target="_blank" rel="noopener">&gt;_demo</a>
 
-## Installation
+## Install with [npm](https://www.npmjs.com/package/@dotburo/select-input)
 ```
 npm i -D @dotburo/select-input
 ```
