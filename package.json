@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pecuchet/select-input.git"
+    "url": "git+https://github.com/dotburo/select-input.git"
   },
   "keywords": [
     "vanilla-javascript",
@@ -26,9 +26,9 @@
   "author": "dotburo <code@dotburo.org> (https://dotburo.org)",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/pecuchet/select-input/issues"
+    "url": "https://github.com/dotburo/select-input/issues"
   },
-  "homepage": "https://github.com/pecuchet/select-input#readme",
+  "homepage": "https://github.com/dotburo/select-input#readme",
   "devDependencies": {
     "@babel/core": "^7.2.2",
     "@babel/polyfill": "^7.2.5",
