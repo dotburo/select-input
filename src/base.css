@@ -51,10 +51,10 @@
     line-height: inherit;
     padding: 0 8px;
 }
-.si-proposal {
+.si-append {
     display: block;
 }
-.si-proposal span {
+.si-append span {
     pointer-events: none;
     padding: 2px 5px;
     background-color: rgba(0, 0, 0, .2);

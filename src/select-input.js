@@ -230,7 +230,7 @@ export default class SelectInput extends DomHelper {
         let list = '',
             current = this.current.value,
             selected = '',
-            button = this._createRemovalButton();
+            button = this.options.allowRemove ? this._createRemovalButton() : '';
 
         items.forEach(item => {
             selected = current && item.value === current ? ' si-current' : '';
@@ -267,24 +267,28 @@ export default class SelectInput extends DomHelper {
      */
     _search(e) {
         let found = null,
+            options = this.options,
             term = e.target.value,
             termLc = term.toLowerCase(),
-            list = this.options.items.filter(item => {
+            list = options.items.filter(item => {
                 return item._lc.indexOf(termLc) !== -1;
             }),
-            html = this._createListItems(list),
+            html = list || options.allowAdd ? this._createListItems(list) : '',
             first = list[0],
             len = list.length;
 
-        if (len === 1 && first) {
+        if (len === 1) {
             found = first;
         }
 
-        if (!first || (len && termLc && termLc !== first._lc)) {
+        if ((len === 0 || (term && termLc !== first._lc)) && options.allowAdd) {
+            this.__found = found;
             html += this._proposeItem(term);
         }
+        else if (len === 0 && !options.allowAdd) {
+            html += this._notFoundItem(term);
+        }
 
-        this.__found = found;
         this._renderListItems(html);
     }
 
@@ -296,7 +300,18 @@ export default class SelectInput extends DomHelper {
      */
     _proposeItem(term) {
         let proposal = this.options.proposal.replace('{X}', `<span>${term}</span>`);
-        return `<li class="si-item si-proposal" data-term="${term}">${proposal}</li>`
+        return `<li class="si-item si-append si-proposal" data-term="${term}">${proposal}</li>`
+    }
+
+    /**
+     * Create a 'not found' message as a list item
+     * @param {String} term
+     * @return {String}
+     * @private
+     */
+    _notFoundItem(term) {
+        let txt = this.options.notFound.replace('{X}', `<span>${term}</span>`);
+        return `<li class="si-item si-append si-not-found">${txt}</li>`
     }
 
     /**
@@ -308,7 +323,7 @@ export default class SelectInput extends DomHelper {
         let el = e.target,
             classList = el.classList;
 
-        if (classList.contains('si-proposal')) {
+        if (this.options.allowAdd && classList.contains('si-proposal')) {
             if (this._tryCreateItem(el.dataset.term)) {
                 this.toggle()._trigger('created', this.current);
             }
@@ -322,7 +337,7 @@ export default class SelectInput extends DomHelper {
             return;
         }
 
-        if (classList.contains('si-removal')) {
+        if (this.options.allowRemove && classList.contains('si-removal')) {
             el = el.parentNode;
             if (this._fireCallback('onDelete', this.findItem(el))) {
                 this._trigger('removed', this._sliceItem(el));
@@ -358,7 +373,7 @@ export default class SelectInput extends DomHelper {
             return;
         }
 
-        if (!item && value) {
+        if (!item && value && this.options.allowAdd) {
             event = this._tryCreateItem(value) ? 'created' : null;
         } else if (item) {
             event = 'selected';

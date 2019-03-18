@@ -1,13 +1,16 @@
 export default {
+    parent: null,
     items: [],
     current: null,
-    parent: null,
-    maxHeight: 0,
+    allowAdd: true,
     proposal: 'Add {X} to the list?',
-    sort: true,
-    order: 'desc',
+    notFound: '{X} not present in the list',
+    allowRemove: true,
     removalIcon: '&times;',
     placeHolder: 'Type to search',
+    sort: true,
+    order: 'desc',
+    maxHeight: 0,
     onDelete: null,
     onCreate: null
 }
