@@ -129,11 +129,12 @@ export default class SelectInput extends DomHelper {
      * @private
      */
     _setCurrent(item, el = null) {
-        this.current = item;
         this.dom.input.value = item ? item.value.toString() : '';
         if (item) {
+            this.current = item;
             this._setSelected(item, el);
         } else {
+            this.current = {};
             this._clearSelected();
         }
         return this;
