@@ -77,9 +77,12 @@ Get all the items in the list as an array of objects
 
 ### instance.getCurrent(): object
 Return the currently selected item of the list
+
+### instance.setCurrent(string|undefined): object
+Set or clear the current value (only existing values can be set)
  
-### instance.findItem(value): object
-Find an item in the list by its value (`String|Number`)
+### instance.findItem(string|number): object
+Find an item in the list by its value
 
 ### instance.remove(): void
 Unbind all events and clean up the DOM

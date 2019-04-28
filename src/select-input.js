@@ -112,16 +112,30 @@ export default class SelectInput extends DomHelper {
     }
 
     /**
+     * Set the current value by its string
+     * @param {String|undefined} value
+     * @return SelectInput
+     */
+    setCurrent(value) {
+        this._setCurrent(value ? this.findItem(value) : null);
+        return this;
+    }
+
+    /**
      * Set the current value of the field
      * @param {EventTarget|null} el
-     * @param {Object} item
+     * @param {Object|null} item
      * @return SelectInput
      * @private
      */
     _setCurrent(item, el = null) {
         this.current = item;
-        this.dom.input.value = item.value.toString();
-        this._setSelected(item, el);
+        this.dom.input.value = item ? item.value.toString() : '';
+        if (item) {
+            this._setSelected(item, el);
+        } else {
+            this._clearSelected();
+        }
         return this;
     }
 
