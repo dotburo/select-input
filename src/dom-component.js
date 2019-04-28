@@ -76,7 +76,9 @@ export default class DomComponent {
 
         if (typeof CustomEvent === 'function') {
             event = new CustomEvent(name, {
-                detail: detail
+                detail: detail,
+                bubbles: true,
+                cancelable: true
             });
         } else {
             event = d.createEvent('Event');
