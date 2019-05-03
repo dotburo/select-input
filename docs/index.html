@@ -76,7 +76,7 @@
             console.log('REMOVED', e.detail, selectInput.getCurrent().value);
         })
         .onDelete(function(item) {
-            return window.confirm('Are you sure you want to erase ' + item.value + '?')
+            return window.confirm('Are you sure you want to forget ' + item.value + '?')
         })
         .onCreate(function(item) {
             return window.confirm('Hello ' + item.value + '!')

@@ -1,3 +1,2 @@
-- display property option
 - clean up returned item from onCreate / onUpdate
 - update an item

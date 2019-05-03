@@ -12,5 +12,7 @@ export default {
     order: 'desc',
     maxHeight: 0,
     onDelete: null,
-    onCreate: null
+    onCreate: null,
+    valueKey: 'value',
+    textKey: 'value'
 }

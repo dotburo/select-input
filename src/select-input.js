@@ -6,9 +6,10 @@ const d = document;
 export default class SelectInput extends DomHelper {
     constructor(element, options = {}) {
         super(element, options, defaults);
+        let current = options.current ? this._convertItem(options.current) : null;
 
         this.options.items = this._convertItems(options.items);
-        this.current = options.current ? this._convertItem(options.current) : {};
+        this.current = this.findItem(current[options.valueKey]);
 
         // search result caching
         this.__found = null;
@@ -18,6 +19,10 @@ export default class SelectInput extends DomHelper {
         this._renderInit();
 
         this._bindEvents();
+
+        if (this.current) {
+            this.dom.input.value = this.current[options.textKey];
+        }
     }
 
     /**
@@ -84,10 +89,11 @@ export default class SelectInput extends DomHelper {
      * Return the current field value object
      * @return {{value: String|Number}|null}
      */
-    getCurrent() {
+    getCurrent(key = null) {
         let current = Object.assign({}, this.current);
-        delete current._lc;
-        return current;
+        delete current._lc_value;
+        delete current._lc_text;
+        return key ? current[key] : current;
     }
 
     /**
@@ -96,7 +102,7 @@ export default class SelectInput extends DomHelper {
      * @private
      */
     clearCurrent() {
-        this.current = {};
+        this.current = null;
         this.dom.input.value = '';
         this._clearSelected();
     }
@@ -107,8 +113,9 @@ export default class SelectInput extends DomHelper {
      * @return {{}}
      */
     findItem(value) {
+        let opt = this.options;
         value = value.nodeName ? value.dataset.value : value;
-        return this.options.items.find(item => item.value === value);
+        return opt.items.find(item => item[opt.valueKey] === value);
     }
 
     /**
@@ -129,12 +136,12 @@ export default class SelectInput extends DomHelper {
      * @private
      */
     _setCurrent(item, el = null) {
-        this.dom.input.value = item ? item.value.toString() : '';
+        this.dom.input.value = item ? item[this.options.textKey].toString() : '';
         if (item) {
             this.current = item;
             this._setSelected(item, el);
         } else {
-            this.current = {};
+            this.current = null;
             this._clearSelected();
         }
         return this;
@@ -148,7 +155,7 @@ export default class SelectInput extends DomHelper {
      */
     _setSelected(item, el = null) {
         this._clearSelected();
-        el = el ? el : this.dom.list.querySelector(`li[data-value="${item.value}"]`);
+        el = el ? el : this.dom.list.querySelector(`li[data-value="${item[this.options.valueKey]}"]`);
         if (el) el.classList.add('si-current');
     }
 
@@ -173,13 +180,15 @@ export default class SelectInput extends DomHelper {
 
     /**
      * Normalize an item as an usable object
-     * @param {String|Number|{value: String|Number, _lc: String}} item
-     * @return {{value: String|Number, _lc: String}}
+     * @param {String|Number|{value: String|Number, _lc_value: String, _lc_text: String}} item
+     * @return {{value: String|Number, _lc_value: String, _lc_text: String}}
      * @private
      */
     _convertItem(item) {
-        item = typeof item !== 'object' ? {value: item} : item;
-        item._lc = item.value.toString().toLowerCase();
+        let opt = this.options;
+        item = typeof item !== 'object' ? {[opt.valueKey]: item, [opt.textKey]: item} : item;
+        item._lc_value = item[opt.valueKey].toString().toLowerCase().replace(/\s+/g, '-');
+        item._lc_text = item[opt.textKey].toString().toLowerCase().replace(/\s+/g, '-');
         return item;
     }
 
@@ -195,8 +204,6 @@ export default class SelectInput extends DomHelper {
 
         this.dom.input = wrap.appendChild(this._renderInput()).firstChild;
         this.dom.list = wrap.appendChild(this._renderList()).firstChild;
-
-        if (this.current.value) this.dom.input.value = this.current.value;
 
         return this.dom.el.appendChild(wrap);
     }
@@ -243,13 +250,18 @@ export default class SelectInput extends DomHelper {
      */
     _createListItems(items = []) {
         let list = '',
-            current = this.current.value,
+            opt = this.options,
+            current = this.getCurrent(opt.valueKey),
             selected = '',
-            button = this.options.allowRemove ? this._createRemovalButton() : '';
+            button = opt.allowRemove ? this._createRemovalButton() : '',
+            value = '',
+            text = '';
 
         items.forEach(item => {
-            selected = current && item.value === current ? ' si-current' : '';
-            list += `<li class="si-item${selected}" data-value="${item.value}">${item.value}${button}</li>`;
+            value = item[opt.valueKey];
+            text = item[opt.textKey];
+            selected = current && value === current ? ' si-current' : '';
+            list += `<li class="si-item${selected}" data-value="${value}">${text}${button}</li>`;
         });
 
         return list;
@@ -281,26 +293,27 @@ export default class SelectInput extends DomHelper {
      * @private
      */
     _search(e) {
-        let found = null,
-            options = this.options,
+        let options = this.options,
             term = e.target.value,
-            termLc = term.toLowerCase(),
+            termLc = term.toLowerCase().replace(/\s+/g, '-'),
             list = options.items.filter(item => {
-                return item._lc.indexOf(termLc) !== -1;
+                return item._lc_value.indexOf(termLc) !== -1 || item._lc_text.indexOf(termLc) !== -1;
             }),
             html = list || options.allowAdd ? this._createListItems(list) : '',
             first = list[0],
             len = list.length;
 
         if (len === 1) {
-            found = first;
+            this.__found = first;
         }
 
-        if ((len === 0 || (term && termLc !== first._lc)) && options.allowAdd) {
-            this.__found = found;
-            html += this._proposeItem(term);
+        if (len > 1 || !len || !term) {
+            this.__found = null;
         }
-        else if (len === 0 && !options.allowAdd) {
+
+        if (options.allowAdd && term && (!first || termLc !== first._lc_text && termLc !== first._lc_value)) {
+            html += this._proposeItem(term)
+        } else if (!options.allowAdd) {
             html += this._notFoundItem(term);
         }
 
@@ -383,8 +396,8 @@ export default class SelectInput extends DomHelper {
         let value = e.target.value,
             item = this.__found,
             event;
-        
-        if (!!value && (e.keyCode !== 13 && e.key !== 'Enter')) {
+
+        if (!!value && (e.keyCode !== 13 || e.key !== 'Enter')) {
             return;
         }
 
@@ -415,8 +428,8 @@ export default class SelectInput extends DomHelper {
 
     /**
      * Insert a new item in the list
-     * @param {{value: String|Number, _lc: String}} item
-     * @return {{value: String|Number, _lc: String}}
+     * @param {{value: String|Number, _lc_value: String, _lc_text: String}} item
+     * @return {{value: String|Number, _lc_value: String, _lc_text: String}}
      * @private
      */
     _insertItem(item) {
@@ -432,8 +445,8 @@ export default class SelectInput extends DomHelper {
     _sortItems() {
         let order = this.options.order === 'desc' ? 1 : -1;
         this.options.items.sort((a, b) => {
-            if (a._lc < b._lc) return -order;
-            if (a._lc > b._lc) return order;
+            if (a._lc_text < b._lc_text) return -order;
+            if (a._lc_text > b._lc_text) return order;
             return 0;
         });
     }
@@ -441,7 +454,7 @@ export default class SelectInput extends DomHelper {
     /**
      * Remove an item from the list
      * @param {HTMLElement|Node} el
-     * @return {{value: String|Number, _lc: String}}
+     * @return {{value: String|Number, _lc_value: String, _lc_text: String}}
      * @private
      */
     _sliceItem(el) {
@@ -450,8 +463,8 @@ export default class SelectInput extends DomHelper {
             current = this.current,
             item;
         this.dom.list.removeChild(el);
-        item = items.splice(items.findIndex(item => item._lc === needle), 1).shift();
-        if (current && item._lc === current._lc) this.clearCurrent();
+        item = items.splice(items.findIndex(item => item._lc_value === needle), 1).shift();
+        if (current && item._lc_value === current._lc_value) this.clearCurrent();
         return item;
     }
 }
