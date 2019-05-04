@@ -27,23 +27,26 @@ selectInput.on('selected', e => console.log(e.detail))
 ```
 
 ## Available options (and their defaults)
-```
-items: []                               # Array of strings/numbers or of {value: String|Number} objects
-current: null                           # Item to select on instantiation
-parent: null                            # Parent element, to 
-maxHeight: 0                            # Maximum height of the dropdown, `0` means no constraint
-allowAdd: true                          # Whether to allow adding new elements to the list
-proposal: 'Add {X} to the list?'        # Message to add an item to the list, {X} will be replaced
-notFound: '{X} not present in the list' # Message if nothing was found (only used if `allowAdd` is `false`)
-sort: true                              # Whether to sort the list
-order: 'desc'                           # Sort order
-allowRemove: true                       # Whether to allow removal of items in the list
-removalIcon: '&times;'                  # HTML for deletion button in each item li-element
-placeHolder: 'Type to search'           # Input field place holder
-onDelete: null                          # Callable, fired before deleting an item; return `false` to prevent deletion
-onCreate: null                          # Callable, fired before creatng an item; return `false` to prevent creation
-```
 
+| Option        | Default                         | Description               |
+| ------------- |---------------------------------| --------------------------|
+| items         | `[]`                            | Array of strings, numbers or objects |
+| current       | `null`                          | Item to be selected upon instantiation |
+| maxHeight     | `0`                             | Maximum height of the dropdown, `0` equals no constraint |
+| allowAdd      | `true`                          | Whether to allow adding new elements to the list |
+| proposal      | `'Add {X} to the list?'`        | Message to add an item to the list, {X} will be replaced |
+| notFound      | `'{X} not present in the list'` | Message if nothing was found (only used if `allowAdd` is `false`) |
+| sort          | `true`                          | Whether to sort the list |
+| order         | `'desc'`                        | Sort order |
+| allowRemove   | `true`                          | Whether to allow removal of items in the list |
+| removalIcon   | `'&times;'`                     | HTML for deletion button in each item li-element |
+| placeHolder   | `'Type to search'`              | Input field place holder |
+| onDelete      | `null`                          | Callable, fired before deleting an item; return `false` to prevent deletion |
+| onCreate      | `null`                          | Callable, fired before creating an item; return `false` to prevent creation |
+| valueKey      | `'value'`                       | If the items are objects, the key of the property to use as value |
+| textKey       | `'value'`                       | If the items are objects, the key of the property to use for display |
+
+  
 ## Events
 
 - **selected**

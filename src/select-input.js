@@ -9,9 +9,9 @@ export default class SelectInput extends DomHelper {
         let current = options.current ? this._convertItem(options.current) : null;
 
         this.options.items = this._convertItems(options.items);
-        this.current = this.findItem(current[options.valueKey]);
+        this.current = current ? this.findItem(this._getItemProp(current)) : null;
 
-        // search result caching
+        // Cached search result
         this.__found = null;
 
         if (this.options.sort) this._sortItems();
@@ -20,8 +20,8 @@ export default class SelectInput extends DomHelper {
 
         this._bindEvents();
 
-        if (this.current) {
-            this.dom.input.value = this.current[options.textKey];
+        if (current) {
+            this._setInputValue(current);
         }
     }
 
@@ -89,11 +89,11 @@ export default class SelectInput extends DomHelper {
      * Return the current field value object
      * @return {{value: String|Number}|null}
      */
-    getCurrent(key = null) {
+    getCurrent() {
         let current = Object.assign({}, this.current);
         delete current._lc_value;
         delete current._lc_text;
-        return key ? current[key] : current;
+        return current;
     }
 
     /**
@@ -113,9 +113,8 @@ export default class SelectInput extends DomHelper {
      * @return {{}}
      */
     findItem(value) {
-        let opt = this.options;
         value = value.nodeName ? value.dataset.value : value;
-        return opt.items.find(item => item[opt.valueKey] === value);
+        return this.options.items.find(item => this._getItemProp(item) === value);
     }
 
     /**
@@ -136,7 +135,7 @@ export default class SelectInput extends DomHelper {
      * @private
      */
     _setCurrent(item, el = null) {
-        this.dom.input.value = item ? item[this.options.textKey].toString() : '';
+        this._setInputValue(item);
         if (item) {
             this.current = item;
             this._setSelected(item, el);
@@ -148,6 +147,16 @@ export default class SelectInput extends DomHelper {
     }
 
     /**
+     * Set the HTML input field
+     * @param {Object} item
+     * @return void
+     * @private
+     */
+    _setInputValue(item) {
+        this.dom.input.value = item ? this._getItemProp(item, 'text').toString() : '';
+    }
+
+    /**
      * Updated selected item in the html list
      * @param {Object} item
      * @param {EventTarget|HTMLElement|null} el
@@ -155,7 +164,7 @@ export default class SelectInput extends DomHelper {
      */
     _setSelected(item, el = null) {
         this._clearSelected();
-        el = el ? el : this.dom.list.querySelector(`li[data-value="${item[this.options.valueKey]}"]`);
+        el = el ? el : this.dom.list.querySelector(`li[data-value="${this._getItemProp(item)}"]`);
         if (el) el.classList.add('si-current');
     }
 
@@ -187,9 +196,30 @@ export default class SelectInput extends DomHelper {
     _convertItem(item) {
         let opt = this.options;
         item = typeof item !== 'object' ? {[opt.valueKey]: item, [opt.textKey]: item} : item;
-        item._lc_value = item[opt.valueKey].toString().toLowerCase().replace(/\s+/g, '-');
-        item._lc_text = item[opt.textKey].toString().toLowerCase().replace(/\s+/g, '-');
+        item._lc_value = this._makeSearchString(this._getItemProp(item));
+        item._lc_text = this._makeSearchString(this._getItemProp(item, 'text'));
         return item;
+    }
+
+    /**
+     * Format all searchable strings
+     * @param {String} value
+     * @return {String}
+     * @private
+     */
+    _makeSearchString(value) {
+        return value.toString().toLowerCase().replace(/\s+/g, '-');
+    }
+
+    /**
+     * Return the value of one of the custom named properties
+     * @param {Object} item
+     * @param {String} prop
+     * @return {String|Number}
+     * @private
+     */
+    _getItemProp(item, prop = 'value') {
+        return item ? item[this.options[`${prop}Key`]] : null;
     }
 
     /**
@@ -251,17 +281,17 @@ export default class SelectInput extends DomHelper {
     _createListItems(items = []) {
         let list = '',
             opt = this.options,
-            current = this.getCurrent(opt.valueKey),
+            currentValue = this._getItemProp(this.current),
             selected = '',
             button = opt.allowRemove ? this._createRemovalButton() : '',
             value = '',
             text = '';
 
         items.forEach(item => {
-            value = item[opt.valueKey];
-            text = item[opt.textKey];
-            selected = current && value === current ? ' si-current' : '';
-            list += `<li class="si-item${selected}" data-value="${value}">${text}${button}</li>`;
+            value = this._getItemProp(item);
+            text = this._getItemProp(item, 'text');
+            selected = currentValue && value === currentValue ? ' si-current' : '';
+            list += `<li class="si-item${selected}" data-value="${value}">${text + button}</li>`;
         });
 
         return list;
@@ -295,10 +325,8 @@ export default class SelectInput extends DomHelper {
     _search(e) {
         let options = this.options,
             term = e.target.value,
-            termLc = term.toLowerCase().replace(/\s+/g, '-'),
-            list = options.items.filter(item => {
-                return item._lc_value.indexOf(termLc) !== -1 || item._lc_text.indexOf(termLc) !== -1;
-            }),
+            termLc = this._makeSearchString(term),
+            list = this._searchItem(termLc),
             html = list || options.allowAdd ? this._createListItems(list) : '',
             first = list[0],
             len = list.length;
@@ -307,7 +335,7 @@ export default class SelectInput extends DomHelper {
             this.__found = first;
         }
 
-        if (len > 1 || !len || !term) {
+        if (len !== 1 || !term) {
             this.__found = null;
         }
 
@@ -318,6 +346,18 @@ export default class SelectInput extends DomHelper {
         }
 
         this._renderListItems(html);
+    }
+
+    /**
+     * Filter the list of available items
+     * @param {String} str
+     * @return {[]}
+     * @private
+     */
+    _searchItem(str) {
+        return this.options.items.filter(item => {
+            return item._lc_value.indexOf(str) !== -1 || item._lc_text.indexOf(str) !== -1;
+        })
     }
 
     /**
