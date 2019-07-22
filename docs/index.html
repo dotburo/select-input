@@ -67,7 +67,7 @@
     });
     selectInput
         .on('selected', function (e) {
-            console.log('SELECTED', e.detail, selectInput.getCurrent().value);
+            console.log('SELECTED', e, e.detail, selectInput.getCurrent().value);
         })
         .on('created', function (e) {
             console.log('CREATED', e.detail, selectInput.getCurrent().value);

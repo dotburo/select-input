@@ -26,7 +26,7 @@ selectInput.on('selected', e => console.log(e.detail))
            .toggle(true);
 ```
 
-## Available options (and their defaults)
+## Available options
 
 | Option        | Default                         | Description               |
 | ------------- |---------------------------------| --------------------------|

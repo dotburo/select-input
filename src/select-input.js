@@ -114,7 +114,7 @@ export default class SelectInput extends DomHelper {
      */
     findItem(value) {
         value = value.nodeName ? value.dataset.value : value;
-        return this.options.items.find(item => this._getItemProp(item) === value);
+        return this.options.items.find(item => this._getItemProp(item) == value);
     }
 
     /**
@@ -290,7 +290,7 @@ export default class SelectInput extends DomHelper {
         items.forEach(item => {
             value = this._getItemProp(item);
             text = this._getItemProp(item, 'text');
-            selected = currentValue && value === currentValue ? ' si-current' : '';
+            selected = currentValue && value == currentValue ? ' si-current' : '';
             list += `<li class="si-item${selected}" data-value="${value}">${text + button}</li>`;
         });
 
