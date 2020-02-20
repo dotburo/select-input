@@ -1,3 +1,4 @@
 - on close and empty and current -> set current 
 - clean up returned item from onCreate / onUpdate
 - update an item
+- multiple instances with single selector

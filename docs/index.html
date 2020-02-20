@@ -23,9 +23,20 @@
             display: table-cell;
             vertical-align: middle;
         }
-        .select-input {
+        .examples {
+            display: flex;
+            justify-content: center;
+        }
+        .examples > .example {
             width: 350px;
-            margin: 0 auto;
+            margin-right: 50px;
+        }
+        .example > small {
+            display: block;
+            margin-bottom: .5em;
+        }
+        .select-input {
+
         }
         h1 {
             width: 350px;
@@ -50,11 +61,19 @@
     </style>
 </head>
 <body>
-<div id="console"></div>
 <div class="demo">
     <div class="demo-inner">
         <h1>SelectInput.js</h1>
-        <div class="select-input"></div>
+        <div class="examples">
+            <div class="example">
+                <small>With allowed creation/deletion of items</small>
+                <div class="select-input"></div>
+            </div>
+            <div class="example">
+                <small>With disabled creation/deletion</small>
+                <div class="select-input select-input-2"></div>
+            </div>
+        </div>
     </div>
 </div>
 <script src="select-input-umd.js"></script>
@@ -80,6 +99,23 @@
         })
         .onCreate(function(item) {
             return window.confirm('Hello ' + item.value + '!')
+        });
+
+    var selectInput2 = new SelectInput('.select-input-2', {
+        items: ['Hou Hsiao-hsien', 'Wang Bing', 'Wong Kar-wai', 'Jia Zhangke'],
+        current: 'Wang Bing',
+        allowRemove: false,
+        allowAdd: false,
+    });
+    selectInput2
+        .on('selected', function (e) {
+            console.log('SELECTED', e, e.detail, selectInput.getCurrent().value);
+        })
+        .on('created', function (e) {
+            console.log('CREATED', e.detail, selectInput.getCurrent().value);
+        })
+        .on('removed', function (e) {
+            console.log('REMOVED', e.detail, selectInput.getCurrent().value);
         });
 </script>
 </body>

@@ -4,7 +4,7 @@ export default {
     current: null,
     allowAdd: true,
     proposal: 'Add {X} to the list?',
-    notFound: '{X} not present in the list',
+    notFound: '{X} is not in the list',
     allowRemove: true,
     removalIcon: '&times;',
     placeHolder: 'Type to search',

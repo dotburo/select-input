@@ -35,7 +35,7 @@ selectInput.on('selected', e => console.log(e.detail))
 | maxHeight     | `0`                             | Maximum height of the dropdown, `0` equals no constraint |
 | allowAdd      | `true`                          | Whether to allow adding new elements to the list |
 | proposal      | `'Add {X} to the list?'`        | Message to add an item to the list, {X} will be replaced |
-| notFound      | `'{X} not present in the list'` | Message if nothing was found (only used if `allowAdd` is `false`) |
+| notFound      | `'{X} is not in the list'`      | Message if nothing was found (only used if `allowAdd` is `false`) |
 | sort          | `true`                          | Whether to sort the list |
 | order         | `'desc'`                        | Sort order |
 | allowRemove   | `true`                          | Whether to allow removal of items in the list |
